@@ -1,0 +1,76 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    jcenter()
+  }
+  dependencies {
+    classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
+  }
+}
+
+apply plugin: 'eclipse'
+apply plugin: 'java'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'application'
+
+group = 'com.foilen'
+version = System.getenv('VERSION')?:'master-SNAPSHOT'
+
+repositories {
+  mavenLocal()
+  jcenter()
+  mavenCentral()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencyManagement {
+  imports {
+    mavenBom 'io.spring.platform:platform-bom:Brussels-SR4'
+  }
+}
+
+eclipse {
+  classpath {
+    downloadSources = true
+    downloadJavadoc = true
+  }
+}
+
+dependencies {
+
+  // Spring
+  compile "org.springframework:spring-context"
+
+  // Logging
+  compile "ch.qos.logback:logback-core"
+  compile "ch.qos.logback:logback-classic"
+  compile "org.slf4j:slf4j-api"
+  compile "org.slf4j:jcl-over-slf4j"
+
+  // Networking
+  compile "com.madgag.spongycastle:prov:$spongycastleVersion"
+  compile "com.madgag.spongycastle:pkix:$spongycastleVersion"
+  compile "com.madgag.spongycastle:pg:$spongycastleVersion"
+  compile "io.netty:netty-all:$nettyVersion"
+  compile 'org.javassist:javassist'
+
+  // JSON
+  compile "com.fasterxml.jackson.core:jackson-databind"
+
+  // Misc
+  compile "args4j:args4j:$argsVersion"
+  compile 'com.google.guava:guava'
+  compile "com.foilen:jl-incubator:$smalltoolsVersion"
+  compile "com.foilen:jl-smalltools:$smalltoolsVersion"
+
+  // Test
+  testCompile 'junit:junit'
+  testCompile "org.springframework:spring-test"
+
+}
+
+mainClassName = 'com.foilen.redirectportregistry.RedirectPortRegistryApp'
+
+task wrapper(type: Wrapper) { gradleVersion = '3.2.1' }
