@@ -99,7 +99,7 @@ cd redirectport-registry-master-SNAPSHOT/
 # Create sample data
 mkdir data
 ./bin/redirectport-registry --createSample \
-  --caCertsFile data/ca-cert.json \
+  --caCertsFile data/ca-certs.json \
   --bridgeCertFile data/node-cert \
   --bridgePrivateKeyFile data/node-key \
   --bridgePort 11000 \
@@ -109,14 +109,14 @@ mkdir data
 # Start the 2 sides
 screen
 ./bin/redirectport-registry \
-  --caCertsFile data/ca-cert.json \
+  --caCertsFile data/ca-certs.json \
   --bridgeCertFile data/node-cert-entry \
   --bridgePrivateKeyFile data/node-key-entry \
   --entryBridgeRegistryFile data/entry.json
 
 # Ctrl+A ; C  (to create a new screen session)
 ./bin/redirectport-registry \
-  --caCertsFile data/ca-cert.json \
+  --caCertsFile data/ca-certs.json \
   --bridgeCertFile data/node-cert-exit \
   --bridgePrivateKeyFile data/node-key-exit \
   --bridgePort 11000 \
@@ -162,7 +162,7 @@ docker run -ti \
   --volume $TMPDIR:/data \
   redirectport-registry:master-SNAPSHOT \
   --createSample \
-  --caCertsFile /data/ca-cert.json \
+  --caCertsFile /data/ca-certs.json \
   --bridgeCertFile /data/node-cert \
   --bridgePrivateKeyFile /data/node-key \
   --bridgePort 11000 \
@@ -211,7 +211,7 @@ docker run \
   --name redirect_exit \
   --detach \
   redirectport-registry:master-SNAPSHOT \
-  --caCertsFile /data/ca-cert.json \
+  --caCertsFile /data/ca-certs.json \
   --bridgeCertFile /data/node-cert-exit \
   --bridgePrivateKeyFile /data/node-key-exit \
   --bridgePort 11000 \
@@ -238,7 +238,7 @@ docker run \
   --name redirect_entry \
   --detach \
   redirectport-registry:master-SNAPSHOT \
-  --caCertsFile /data/ca-cert.json \
+  --caCertsFile /data/ca-certs.json \
   --bridgeCertFile /data/node-cert-entry \
   --bridgePrivateKeyFile /data/node-key-entry \
   --entryBridgeRegistryFile /data/entry.json
@@ -276,7 +276,7 @@ docker run -ti \
   --volume $TMPDIR:/data \
   foilen/redirectport-registry \
   --createSample \
-  --caCertsFile /data/ca-cert.json \
+  --caCertsFile /data/ca-certs.json \
   --bridgeCertFile /data/node-cert \
   --bridgePrivateKeyFile /data/node-key \
   --bridgePort 11000 \
@@ -325,7 +325,7 @@ docker run \
   --name redirect_exit \
   --detach \
   foilen/redirectport-registry \
-  --caCertsFile /data/ca-cert.json \
+  --caCertsFile /data/ca-certs.json \
   --bridgeCertFile /data/node-cert-exit \
   --bridgePrivateKeyFile /data/node-key-exit \
   --bridgePort 11000 \
@@ -352,7 +352,7 @@ docker run \
   --name redirect_entry \
   --detach \
   foilen/redirectport-registry \
-  --caCertsFile /data/ca-cert.json \
+  --caCertsFile /data/ca-certs.json \
   --bridgeCertFile /data/node-cert-entry \
   --bridgePrivateKeyFile /data/node-key-entry \
   --entryBridgeRegistryFile /data/entry.json
