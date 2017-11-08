@@ -161,13 +161,15 @@ docker run -ti \
   --rm \
   --volume $TMPDIR:/data \
   redirectport-registry:master-SNAPSHOT \
-  /app/bin/redirectport-registry --createSample \
+  --createSample \
   --caCertsFile /data/ca-cert.json \
   --bridgeCertFile /data/node-cert \
   --bridgePrivateKeyFile /data/node-key \
   --bridgePort 11000 \
   --entryBridgeRegistryFile /data/entry.json \
   --exitBridgeRegistryFile /data/exit.json
+  
+sudo chmod 666 $TMPDIR/*
 
 # Run mariadb
 MYSQL_ROOT_PASS=qwerty
@@ -192,11 +194,7 @@ _EOF
 MYSQL_IP=$(docker inspect redirect_mariadb | grep '"IPAddress"' | head -n 1 | cut -d '"' -f 4)
 
 # Run exit
-docker run -i \
-  --rm \
-  --volume $TMPDIR:/data \
-  redirectport-registry:master-SNAPSHOT \
-  sh -c 'exec cat > /data/exit.json' << _EOF
+cat > $TMPDIR/exit.json << _EOF
 {
   "exits" : [ {
     "serviceName" : "MYSQL",
@@ -213,7 +211,6 @@ docker run \
   --name redirect_exit \
   --detach \
   redirectport-registry:master-SNAPSHOT \
-  /app/bin/redirectport-registry \
   --caCertsFile /data/ca-cert.json \
   --bridgeCertFile /data/node-cert-exit \
   --bridgePrivateKeyFile /data/node-key-exit \
@@ -223,11 +220,7 @@ docker run \
 EXIT_IP=$(docker inspect redirect_exit | grep '"IPAddress"' | head -n 1 | cut -d '"' -f 4)
 
 # Run entry
-docker run -i \
-  --rm \
-  --volume $TMPDIR:/data \
-  redirectport-registry:master-SNAPSHOT \
-  sh -c 'exec cat > /data/entry.json' << _EOF
+cat > $TMPDIR/entry.json << _EOF
 {
   "entries" : [ {
     "entryRawPort" : 3306,
@@ -245,7 +238,6 @@ docker run \
   --name redirect_entry \
   --detach \
   redirectport-registry:master-SNAPSHOT \
-  /app/bin/redirectport-registry \
   --caCertsFile /data/ca-cert.json \
   --bridgeCertFile /data/node-cert-entry \
   --bridgePrivateKeyFile /data/node-key-entry \
@@ -283,13 +275,15 @@ docker run -ti \
   --rm \
   --volume $TMPDIR:/data \
   foilen/redirectport-registry \
-  /app/bin/redirectport-registry --createSample \
+  --createSample \
   --caCertsFile /data/ca-cert.json \
   --bridgeCertFile /data/node-cert \
   --bridgePrivateKeyFile /data/node-key \
   --bridgePort 11000 \
   --entryBridgeRegistryFile /data/entry.json \
   --exitBridgeRegistryFile /data/exit.json
+  
+sudo chmod 666 $TMPDIR/*
 
 # Run mariadb
 MYSQL_ROOT_PASS=qwerty
@@ -314,11 +308,7 @@ _EOF
 MYSQL_IP=$(docker inspect redirect_mariadb | grep '"IPAddress"' | head -n 1 | cut -d '"' -f 4)
 
 # Run exit
-docker run -i \
-  --rm \
-  --volume $TMPDIR:/data \
-  foilen/redirectport-registry \
-  sh -c 'exec cat > /data/exit.json' << _EOF
+cat > $TMPDIR/exit.json << _EOF
 {
   "exits" : [ {
     "serviceName" : "MYSQL",
@@ -335,7 +325,6 @@ docker run \
   --name redirect_exit \
   --detach \
   foilen/redirectport-registry \
-  /app/bin/redirectport-registry \
   --caCertsFile /data/ca-cert.json \
   --bridgeCertFile /data/node-cert-exit \
   --bridgePrivateKeyFile /data/node-key-exit \
@@ -345,11 +334,7 @@ docker run \
 EXIT_IP=$(docker inspect redirect_exit | grep '"IPAddress"' | head -n 1 | cut -d '"' -f 4)
 
 # Run entry
-docker run -i \
-  --rm \
-  --volume $TMPDIR:/data \
-  foilen/redirectport-registry \
-  sh -c 'exec cat > /data/entry.json' << _EOF
+cat > $TMPDIR/entry.json << _EOF
 {
   "entries" : [ {
     "entryRawPort" : 3306,
@@ -367,7 +352,6 @@ docker run \
   --name redirect_entry \
   --detach \
   foilen/redirectport-registry \
-  /app/bin/redirectport-registry \
   --caCertsFile /data/ca-cert.json \
   --bridgeCertFile /data/node-cert-entry \
   --bridgePrivateKeyFile /data/node-key-entry \
