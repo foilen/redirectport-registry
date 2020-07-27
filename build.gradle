@@ -1,17 +1,19 @@
 buildscript {
+  ext {
+    springBootVersion = '2.3.2.RELEASE'
+  }
   repositories {
-    mavenLocal()
-    jcenter()
+    mavenCentral()
   }
   dependencies {
-    classpath 'io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE'
+    classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
   }
 }
 
-apply plugin: 'eclipse'
 apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
-apply plugin: 'application'
 
 group = 'com.foilen'
 version = System.getenv('VERSION')?:'master-SNAPSHOT'
@@ -22,14 +24,7 @@ repositories {
   mavenCentral()
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-dependencyManagement {
-  imports {
-    mavenBom 'io.spring.platform:platform-bom:Brussels-SR4'
-  }
-}
+sourceCompatibility = 1.11
 
 eclipse {
   classpath {
@@ -41,7 +36,8 @@ eclipse {
 dependencies {
 
   // Spring
-  compile "org.springframework:spring-context"
+ // compile "org.springframework:spring-context"
+  compile "org.springframework.boot:spring-boot-starter"
 
   // Logging
   compile "ch.qos.logback:logback-core"
@@ -54,23 +50,24 @@ dependencies {
   compile "com.madgag.spongycastle:pkix:$spongycastleVersion"
   compile "com.madgag.spongycastle:pg:$spongycastleVersion"
   compile "io.netty:netty-all:$nettyVersion"
-  compile 'org.javassist:javassist'
+  compile 'org.javassist:javassist:3.27.0-GA'
 
   // JSON
   compile "com.fasterxml.jackson.core:jackson-databind"
 
   // Misc
   compile "args4j:args4j:$argsVersion"
-  compile 'com.google.guava:guava'
+  compile 'com.google.guava:guava:29.0-jre'
   compile "com.foilen:jl-incubator:$smalltoolsVersion"
   compile "com.foilen:jl-smalltools:$smalltoolsVersion"
+  compile "javax.xml.bind:jaxb-api:2.3.1"
 
   // Test
   testCompile 'junit:junit'
-  testCompile "org.springframework:spring-test"
+  testCompile "org.springframework.boot:spring-boot-starter-test"
 
 }
 
-mainClassName = 'com.foilen.redirectportregistry.RedirectPortRegistryApp'
-
-task wrapper(type: Wrapper) { gradleVersion = '3.2.1' }
+bootJar {
+  classifier = 'boot'
+}

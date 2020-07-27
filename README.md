@@ -90,37 +90,32 @@ This example will redirect the local port 10800 to www.google.com:80
 # Tmp dir
 TMPDIR=$(mktemp -d)
 
-# Unzip the app
-cp build/distributions/redirectport-registry-master-SNAPSHOT.zip $TMPDIR
-pushd $TMPDIR
-unzip redirectport-registry-master-SNAPSHOT.zip
-cd redirectport-registry-master-SNAPSHOT/
-
 # Create sample data
-mkdir data
-./bin/redirectport-registry --createSample \
-  --caCertsFile data/ca-certs.json \
-  --bridgeCertFile data/node-cert \
-  --bridgePrivateKeyFile data/node-key \
+mkdir -p _data
+
+java -jar build/libs/redirectport-registry-master-SNAPSHOT-boot.jar --createSample \
+  --caCertsFile _data/ca-certs.json \
+  --bridgeCertFile _data/node-cert \
+  --bridgePrivateKeyFile _data/node-key \
   --bridgePort 11000 \
-  --entryBridgeRegistryFile data/entry.json \
-  --exitBridgeRegistryFile data/exit.json
+  --entryBridgeRegistryFile _data/entry.json \
+  --exitBridgeRegistryFile _data/exit.json
 
 # Start the 2 sides
 screen
-./bin/redirectport-registry \
-  --caCertsFile data/ca-certs.json \
-  --bridgeCertFile data/node-cert-entry \
-  --bridgePrivateKeyFile data/node-key-entry \
-  --entryBridgeRegistryFile data/entry.json
+java -jar build/libs/redirectport-registry-master-SNAPSHOT-boot.jar \
+  --caCertsFile _data/ca-certs.json \
+  --bridgeCertFile _data/node-cert-entry \
+  --bridgePrivateKeyFile _data/node-key-entry \
+  --entryBridgeRegistryFile _data/entry.json
 
 # Ctrl+A ; C  (to create a new screen session)
-./bin/redirectport-registry \
-  --caCertsFile data/ca-certs.json \
-  --bridgeCertFile data/node-cert-exit \
-  --bridgePrivateKeyFile data/node-key-exit \
+java -jar build/libs/redirectport-registry-master-SNAPSHOT-boot.jar \
+  --caCertsFile _data/ca-certs.json \
+  --bridgeCertFile _data/node-cert-exit \
+  --bridgePrivateKeyFile _data/node-key-exit \
   --bridgePort 11000 \
-  --exitBridgeRegistryFile data/exit.json
+  --exitBridgeRegistryFile _data/exit.json
 
 
 # Ctrl+A ; C  (to create a new screen session)
@@ -256,7 +251,8 @@ SHOW DATABASES;
 _EOF
 
 # See that it went through
-docker logs redirect_exit
+docker logs -f redirect_entry
+docker logs -f redirect_exit
 
 # Stop everything
 docker stop redirect_entry redirect_exit redirect_mariadb

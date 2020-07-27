@@ -1,6 +1,6 @@
-FROM openjdk:8-jre-slim
+FROM openjdk:11-jre-slim
 
 COPY app/ /app
 
 WORKDIR /app
-ENTRYPOINT ["/app/bin/redirectport-registry"]
+ENTRYPOINT ["java", "-jar", "/app/redirectport-registry.jar"]

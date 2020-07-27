@@ -25,10 +25,10 @@ import com.foilen.redirectportregistry.model.RedirectPortRegistryEntries;
 import com.foilen.redirectportregistry.model.RedirectPortRegistryEntry;
 import com.foilen.redirectportregistry.model.RedirectPortRegistryExit;
 import com.foilen.redirectportregistry.model.RedirectPortRegistryExits;
-import com.foilen.smalltools.crypt.asymmetric.AsymmetricKeys;
-import com.foilen.smalltools.crypt.asymmetric.RSACrypt;
-import com.foilen.smalltools.crypt.cert.CertificateDetails;
-import com.foilen.smalltools.crypt.cert.RSACertificate;
+import com.foilen.smalltools.crypt.spongycastle.asymmetric.AsymmetricKeys;
+import com.foilen.smalltools.crypt.spongycastle.asymmetric.RSACrypt;
+import com.foilen.smalltools.crypt.spongycastle.cert.CertificateDetails;
+import com.foilen.smalltools.crypt.spongycastle.cert.RSACertificate;
 import com.foilen.smalltools.tools.CollectionsTools;
 import com.foilen.smalltools.tools.JsonTools;
 import com.foilen.smalltools.tools.LogbackTools;
@@ -67,62 +67,6 @@ public class RedirectPortRegistryApp {
 
     public RedirectPortRegistryApp(RedirectPortRegistryOptions redirectPortRegistryOptions) {
         this.redirectPortRegistryOptions = redirectPortRegistryOptions;
-    }
-
-    public void start() {
-        // Check if debug
-        if (redirectPortRegistryOptions.debug) {
-            LogbackTools.changeConfig("/logback-debug.xml");
-        } else {
-            LogbackTools.changeConfig("/logback-normal.xml");
-        }
-
-        // Check if want sample
-        if (redirectPortRegistryOptions.createSample) {
-            logger.info("Creating sample files");
-            createSample();
-            return;
-        }
-
-        // Check if using cert
-        List<String> certOptions = new ArrayList<>();
-        certOptions.add(redirectPortRegistryOptions.caCertsFile);
-        certOptions.add(redirectPortRegistryOptions.bridgeCertFile);
-        certOptions.add(redirectPortRegistryOptions.bridgePrivateKeyFile);
-        if (CollectionsTools.isAnyItemNotNullOrEmpty(certOptions) && !CollectionsTools.isAllItemNotNullOrEmpty(certOptions)) {
-            System.out.println("ERROR: If you want to use the encrypted connection, you need to set the 3 properties: caCertFile, bridgeCertFile and bridgePrivateKeyFile");
-            showUsage();
-            return;
-        }
-
-        // Prepare Spring
-        context = new AnnotationConfigApplicationContext();
-        context.getBeanFactory().registerSingleton("redirectPortRegistryOptions", redirectPortRegistryOptions);
-        context.register(RedirectPortRegistryConfig.class);
-
-        // Check if is entry or exit bridge
-        if (redirectPortRegistryOptions.entryBridgeRegistryFile != null) {
-
-            logger.info("ENTRY - Will use the file {}", redirectPortRegistryOptions.entryBridgeRegistryFile);
-            if (!redirectPortRegistryOptions.entryBridgeRegistryFile.exists()) {
-                logger.error("The file {} does not exists", redirectPortRegistryOptions.entryBridgeRegistryFile);
-                return;
-            }
-
-            context.register(RedirectPortRegistryEntryConfig.class);
-        } else if (redirectPortRegistryOptions.exitBridgeRegistryFile != null) {
-
-            logger.info("EXIT - Will use the file {} and listen on port {}", redirectPortRegistryOptions.exitBridgeRegistryFile, redirectPortRegistryOptions.bridgePort);
-
-            context.register(RedirectPortRegistryExitConfig.class);
-        } else {
-            System.out.println("You need to set all the arguments for the entry or exit bridge");
-            showUsage();
-            return;
-        }
-
-        context.refresh();
-
     }
 
     private void createSample() {
@@ -186,6 +130,62 @@ public class RedirectPortRegistryApp {
             exits.getExits().add(new RedirectPortRegistryExit("GOOGLE", "HTTP", "www.google.com", 80));
             JsonTools.writeToFile(fileName, exits);
         }
+    }
+
+    public void start() {
+        // Check if debug
+        if (redirectPortRegistryOptions.debug) {
+            LogbackTools.changeConfig("/logback-debug.xml");
+        } else {
+            LogbackTools.changeConfig("/logback-normal.xml");
+        }
+
+        // Check if want sample
+        if (redirectPortRegistryOptions.createSample) {
+            logger.info("Creating sample files");
+            createSample();
+            return;
+        }
+
+        // Check if using cert
+        List<String> certOptions = new ArrayList<>();
+        certOptions.add(redirectPortRegistryOptions.caCertsFile);
+        certOptions.add(redirectPortRegistryOptions.bridgeCertFile);
+        certOptions.add(redirectPortRegistryOptions.bridgePrivateKeyFile);
+        if (CollectionsTools.isAnyItemNotNullOrEmpty(certOptions) && !CollectionsTools.isAllItemNotNullOrEmpty(certOptions)) {
+            System.out.println("ERROR: If you want to use the encrypted connection, you need to set the 3 properties: caCertFile, bridgeCertFile and bridgePrivateKeyFile");
+            showUsage();
+            return;
+        }
+
+        // Prepare Spring
+        context = new AnnotationConfigApplicationContext();
+        context.getBeanFactory().registerSingleton("redirectPortRegistryOptions", redirectPortRegistryOptions);
+        context.register(RedirectPortRegistryConfig.class);
+
+        // Check if is entry or exit bridge
+        if (redirectPortRegistryOptions.entryBridgeRegistryFile != null) {
+
+            logger.info("ENTRY - Will use the file {}", redirectPortRegistryOptions.entryBridgeRegistryFile);
+            if (!redirectPortRegistryOptions.entryBridgeRegistryFile.exists()) {
+                logger.error("The file {} does not exists", redirectPortRegistryOptions.entryBridgeRegistryFile);
+                return;
+            }
+
+            context.register(RedirectPortRegistryEntryConfig.class);
+        } else if (redirectPortRegistryOptions.exitBridgeRegistryFile != null) {
+
+            logger.info("EXIT - Will use the file {} and listen on port {}", redirectPortRegistryOptions.exitBridgeRegistryFile, redirectPortRegistryOptions.bridgePort);
+
+            context.register(RedirectPortRegistryExitConfig.class);
+        } else {
+            System.out.println("You need to set all the arguments for the entry or exit bridge");
+            showUsage();
+            return;
+        }
+
+        context.refresh();
+
     }
 
     public void stop() {
