@@ -10,6 +10,7 @@
 package com.foilen.redirectportregistry.entry.service;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,6 +83,8 @@ public class EntryBridgeService implements OneFileUpdateNotifyerHandler {
         List<RedirectPortRegistryEntry> registryEntries = entries.getEntries();
         Collections.sort(registryEntries);
         List<RedirectPortRegistryEntry> currentEntries = redirectPortRegistryEntryByPort.values().stream().sorted().collect(Collectors.toList());
+        List<RedirectPortRegistryEntry> toRemove = new ArrayList<>();
+        List<RedirectPortRegistryEntry> toAdd = new ArrayList<>();
 
         ListsComparator.compareLists(currentEntries, registryEntries, new ListComparatorHandler<RedirectPortRegistryEntry, RedirectPortRegistryEntry>() {
 
@@ -92,40 +95,49 @@ public class EntryBridgeService implements OneFileUpdateNotifyerHandler {
 
             @Override
             public void leftOnly(RedirectPortRegistryEntry left) {
-                // Disconnect and remove
-                logger.info("Removing service {}/{} on port {}", left.getRemoteServiceName(), left.getRemoteServiceEndpoint(), left.getEntryRawPort());
-                int port = left.getEntryRawPort();
-                CloseableTools.close(tcpServerByPort.remove(port));
-                redirectPortRegistryEntryByPort.remove(port);
+                toRemove.add(left);
             }
 
             @Override
             public void rightOnly(RedirectPortRegistryEntry right) {
-                // Start a server
-                logger.info("Adding service {}/{} on port {}", right.getRemoteServiceName(), right.getRemoteServiceEndpoint(), right.getEntryRawPort());
-                int port = right.getEntryRawPort();
-                redirectPortRegistryEntryByPort.put(port, right);
-
-                TCPServerService serverService = new TCPServerService(port, socket -> {
-
-                    // Get or create a bridge connection to the remote host
-                    NettyClientMessagingQueue nettyClientMessagingQueue = remoteBridgeConnectionsService.getOneOrConnect(right.getRemoteBridgeHost(), right.getRemoteBridgePort());
-
-                    // Generate a unique id
-                    String connectionId = uniqueIdGeneratorService.generate();
-
-                    // Wrap the socket
-                    TransportConnection transportConnection = new TransportConnection(connectionId, socket, messageSenderService);
-
-                    // Register on the routing table
-                    routingTableService.addEntry(connectionId, transportConnection, nettyClientMessagingQueue);
-
-                    // Create a new connection
-                    messageSenderService.sendConnect(connectionId, right.getRemoteServiceName(), right.getRemoteServiceEndpoint());
-                });
-
-                tcpServerByPort.put(port, serverService);
+                toAdd.add(right);
             }
+        });
+
+        // Remove first
+        toRemove.forEach(remove -> {
+            // Disconnect and remove
+            logger.info("Removing service {}/{} on port {}", remove.getRemoteServiceName(), remove.getRemoteServiceEndpoint(), remove.getEntryRawPort());
+            int port = remove.getEntryRawPort();
+            CloseableTools.close(tcpServerByPort.remove(port));
+            redirectPortRegistryEntryByPort.remove(port);
+        });
+
+        // Then add
+        toAdd.forEach(right -> { // Start a server
+            logger.info("Adding service {}/{} on port {}", right.getRemoteServiceName(), right.getRemoteServiceEndpoint(), right.getEntryRawPort());
+            int port = right.getEntryRawPort();
+            redirectPortRegistryEntryByPort.put(port, right);
+
+            TCPServerService serverService = new TCPServerService(port, socket -> {
+
+                // Get or create a bridge connection to the remote host
+                NettyClientMessagingQueue nettyClientMessagingQueue = remoteBridgeConnectionsService.getOneOrConnect(right.getRemoteBridgeHost(), right.getRemoteBridgePort());
+
+                // Generate a unique id
+                String connectionId = uniqueIdGeneratorService.generate();
+
+                // Wrap the socket
+                TransportConnection transportConnection = new TransportConnection(connectionId, socket, messageSenderService);
+
+                // Register on the routing table
+                routingTableService.addEntry(connectionId, transportConnection, nettyClientMessagingQueue);
+
+                // Create a new connection
+                messageSenderService.sendConnect(connectionId, right.getRemoteServiceName(), right.getRemoteServiceEndpoint());
+            });
+
+            tcpServerByPort.put(port, serverService);
         });
 
         // Cleanup connectionsPoolByRemotHost
