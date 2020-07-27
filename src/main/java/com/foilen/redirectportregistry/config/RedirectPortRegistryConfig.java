@@ -1,7 +1,7 @@
 /*
     Redirectport-Registry
     https://github.com/foilen/redirectport-registry
-    Copyright (c) 2017 Foilen (http://foilen.com)
+    Copyright (c) 2017-2020 Foilen (http://foilen.com)
 
     The MIT License
     http://opensource.org/licenses/MIT
